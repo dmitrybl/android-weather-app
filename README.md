@@ -7,3 +7,9 @@ Stack of technologies: Kotlin + rxKotlin + MVP + Retrofit
 
 Version: 1.0
 
+<p>
+    <img src="images/screenshot1.jpg" width="200">
+    <img src="images/screenshot2.jpg" width="200">
+    <img src="images/screenshot3.jpg" width="200">
+</p>
+
