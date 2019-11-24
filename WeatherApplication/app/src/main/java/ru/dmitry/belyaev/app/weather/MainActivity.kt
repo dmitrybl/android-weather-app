@@ -10,11 +10,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (savedInstanceState == null) {
+        if (supportFragmentManager.backStackEntryCount < 1) {
             supportFragmentManager.beginTransaction()
                 .add(R.id.container,
                 HomeFragment.newInstance(), null)
                 .commit()
+        }
+    }
+
+    override fun onBackPressed() {
+        if(supportFragmentManager.backStackEntryCount <= 1) {
+            super.onBackPressed()
+        } else {
+            supportFragmentManager.popBackStack()
         }
     }
 

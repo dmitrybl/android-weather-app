@@ -5,20 +5,19 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import ru.dmitry.belyaev.app.weather.ApiUtils
 import ru.dmitry.belyaev.app.weather.Utils
-import ru.dmitry.belyaev.app.weather.base.BasePresenter
 import ru.dmitry.belyaev.app.weather.fragments.HomeFragment
 import ru.dmitry.belyaev.app.weather.rest.model.current.CurrentWeatherModel
 import ru.dmitry.belyaev.app.weather.rest.model.forecast.ForecastWeatherModel
 
 class HomePresenter : BasePresenter<HomeFragment>() {
 
-    fun showWeatherByCity(cityName: String) {
+    fun loadWeatherByCity(city: String) {
         val midDayRange: IntRange = 12..14
         view.showProgress()
 
-        val currentWeatherObservable = ApiUtils.weatherApi.getWeatherByCity(cityName)
+        val currentWeatherObservable = ApiUtils.weatherApi.getWeatherByCity(city)
 
-        val forecastWeatherObservable = ApiUtils.weatherApi.getForecastByCity(cityName)
+        val forecastWeatherObservable = ApiUtils.weatherApi.getForecastByCity(city)
                 .flatMap { forecastList ->
                     Observable.fromIterable(forecastList.forecast).filter {
                         val hours = Utils.getHours(it.dt + forecastList.city.timezone)

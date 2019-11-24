@@ -1,7 +1,8 @@
-package ru.dmitry.belyaev.app.weather.base
+package ru.dmitry.belyaev.app.weather.presenters
 
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import ru.dmitry.belyaev.app.weather.views.BaseView
 
 abstract class BasePresenter<V: BaseView> {
 

@@ -1,4 +1,4 @@
-package ru.dmitry.belyaev.app.weather.base
+package ru.dmitry.belyaev.app.weather.views
 
 interface BaseView {
 
@@ -7,4 +7,6 @@ interface BaseView {
     fun hideProgress()
 
     fun showError()
+
+    fun showErrorMessage(message: String)
 }

@@ -31,13 +31,13 @@ interface WeatherApi {
 
 
     @GET("weather")
-    fun getWeatherByCity(@Query("q") cityName: String,
+    fun getWeatherByCity(@Query("q") city: String,
                          @Query("appid") apiKey: String = API_KEY,
                          @Query("lang") lang: String = "ru"): Observable<CurrentWeatherModel>
 
 
     @GET("forecast")
-    fun getForecastByCity(@Query("q") cityName: String,
+    fun getForecastByCity(@Query("q") city: String,
                           @Query("appid") apiKey: String = API_KEY,
                           @Query("lang") lang: String = "ru"): Observable<ForecastList>
 

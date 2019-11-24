@@ -1,7 +1,6 @@
 package ru.dmitry.belyaev.app.weather.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +13,15 @@ import kotlinx.android.synthetic.main.item_progress.*
 import ru.dmitry.belyaev.app.weather.R
 import ru.dmitry.belyaev.app.weather.Utils
 import ru.dmitry.belyaev.app.weather.adapter.DailyForecastAdapter
-import ru.dmitry.belyaev.app.weather.adapter.model.DayForecast
-import ru.dmitry.belyaev.app.weather.base.BaseFragment
+import ru.dmitry.belyaev.app.weather.adapter.model.DailyForecast
 import ru.dmitry.belyaev.app.weather.presenters.HomePresenter
 import ru.dmitry.belyaev.app.weather.rest.model.current.CurrentWeatherModel
 import ru.dmitry.belyaev.app.weather.rest.model.forecast.ForecastWeatherModel
 import ru.dmitry.belyaev.app.weather.views.HomeView
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
-
+import androidx.recyclerview.widget.RecyclerView
+import ru.dmitry.belyaev.app.weather.adapter.BaseAdapterCallback
 
 class HomeFragment : BaseFragment(), HomeView {
 
@@ -33,8 +32,15 @@ class HomeFragment : BaseFragment(), HomeView {
     }
 
     private var timezoneOffset: Long = 0
+    private var currentCity: String = ""
+    private lateinit var recyclerView: RecyclerView
     private lateinit var presenter: HomePresenter
-    private lateinit var adapter: DailyForecastAdapter
+    private lateinit var viewAdapter: DailyForecastAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        retainInstance = true
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_home, container, false)
@@ -42,26 +48,33 @@ class HomeFragment : BaseFragment(), HomeView {
 
     override fun onRefresh() {
         super.onRefresh()
-        adapter.clearItems()
-        adapter.notifyDataSetChanged()
-        presenter.showWeatherByCity(search.text.toString().trim())
+        viewAdapter.clearItems()
+        viewAdapter.notifyDataSetChanged()
+        presenter.loadWeatherByCity(search.text.toString().trim())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         presenter = HomePresenter()
         presenter.attach(this)
 
-        adapter = DailyForecastAdapter()
+        viewAdapter = DailyForecastAdapter()
+        viewAdapter.attachCallback(object: BaseAdapterCallback<DailyForecast> {
+            override fun onItemClick(model: DailyForecast, view: View) {
+                val currentFragment = activity!!.supportFragmentManager.fragments.last()
+                activity!!.supportFragmentManager.beginTransaction()
+                    .hide(currentFragment)
+                    .add(R.id.container, HourlyForecastFragment.newInstance(model.day, currentCity), null)
+                    .addToBackStack(null)
+                    .commit()
+            }
+        })
 
-        dailyForecastList.also { rv ->
-            rv.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            rv.isNestedScrollingEnabled = false
-            rv.adapter = adapter
-        }
-
-        swipeRefresh.setOnRefreshListener {
-            onRefresh()
+        recyclerView = dailyForecastList.apply {
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            isNestedScrollingEnabled = false
+            adapter = viewAdapter
         }
 
         search.setOnEditorActionListener(object: TextView.OnEditorActionListener {
@@ -85,7 +98,7 @@ class HomeFragment : BaseFragment(), HomeView {
 
         })
 
-        presenter.showWeatherByCity(search.text.toString().trim())
+        presenter.loadWeatherByCity(search.text.toString().trim())
 
     }
 
@@ -114,22 +127,25 @@ class HomeFragment : BaseFragment(), HomeView {
     override fun updateWeather(modelCurrent: CurrentWeatherModel) {
         search.requestFocus()
         city.text = "${modelCurrent.name}, ${modelCurrent.sys.country}"
-        degree.text = Utils.formatTemperature(modelCurrent.main.temp)
+        icon.setImageResource(Utils.getIconNameResource(modelCurrent.weather[0].icon))
+        temperature.text = Utils.formatTemperature(modelCurrent.main.temp)
         humadity.text = "${modelCurrent.weather[0].description}, влажность: ${modelCurrent.main.humidity} %"
         timezoneOffset = modelCurrent.timezone
-        Log.d("myLogs", "city: ${modelCurrent.name}")
+        currentCity = modelCurrent.name
     }
 
     override fun addDay(modelForecast: ForecastWeatherModel) {
         val dt = modelForecast.dt + timezoneOffset
 
-        val dayForecast = DayForecast(
+        val dayForecast = DailyForecast(
+            Utils.getIconNameResource(modelForecast.weather[0].icon),
+            Utils.getDateTime(dt, "dd"),
             Utils.getDateTime(dt, "dd.MM.yyyy"),
             Utils.getDateTime(dt,"HH:mm"),
             modelForecast.weather[0].description,
             Utils.formatTemperature(modelForecast.main.temp))
 
-        adapter.addItem(dayForecast)
+        viewAdapter.addItem(dayForecast)
     }
 
     override fun onResume() {

@@ -45,8 +45,17 @@
                         android:gravity="center_horizontal"
                         tools:text="Moscow"/>
 
+
+                    <ImageView
+                        android:id="@+id/icon"
+                        android:layout_marginTop="10dp"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_gravity="center_horizontal"
+                        tools:src="@drawable/ic_02d"/>
+
                     <TextView
-                        android:id="@+id/degree"
+                        android:id="@+id/temperature"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
